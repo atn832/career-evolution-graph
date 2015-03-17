@@ -40,7 +40,7 @@ var TodoApp = React.createClass({
       jobs: jobs
     });
     // request more
-    if (depth < 1) {
+    if (depth < 2) {
       Object.keys(jobs).forEach(function(jobTitle) {
         var job = jobs[jobTitle];
         job.results.forEach(function(nextJob) {
@@ -100,11 +100,13 @@ var TodoApp = React.createClass({
     // populate nodes
     Object.keys(this.state.jobs).forEach(function(jobTitle) {
       var job = this.state.jobs[jobTitle];
-      nodes.push({
-        id: jobTitle,
-        label: jobTitle
-      });
-      nodeAdded[jobTitle] = true;
+      if (!nodeAdded[jobTitle]) {
+        nodes.push({
+          id: jobTitle,
+          label: jobTitle
+        });
+        nodeAdded[jobTitle] = true;
+      }
 
       var job = this.state.jobs[jobTitle];
       job.results.forEach(function(nextJob) {
