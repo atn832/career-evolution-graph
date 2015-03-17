@@ -17,7 +17,8 @@ var TodoList = React.createClass({
 function requestJobEvolution(jobTitle) {
   return new Promise(function(resolve, reject) {
     request
-      .get("https://jsonp.nodejitsu.com/")
+      .get("http://localhost:8000/")
+      // .get("https://jsonp.nodejitsu.com/")
       .query({
         url: "http://api.glassdoor.com/api/api.htm?t.p=31642&t.k=0bNITwCyIE&userip=0.0.0.0&useragent=&format=json&v=1&action=jobs-prog&countryId=1&jobTitle=" + jobTitle
       })
@@ -119,7 +120,7 @@ var TodoApp = React.createClass({
         }
         node = {
           id: nextJobTitle,
-          label: nextJobTitle,
+          label: nextJobTitle + " ($" + Math.round(nextJob.medianSalary / 1000) + "K)",
           value: nextJob.nationalJobCount
         };
         nodes.push(node);
@@ -131,9 +132,14 @@ var TodoApp = React.createClass({
     Object.keys(this.state.jobs).forEach(function(jobTitle) {
       var job = this.state.jobs[jobTitle];
       job.results.forEach(function(nextJob) {
+        // only render career progress
+        // if (job.payMedian > nextJob.medianSalary)
+        //   return;
+
         edges.push({
           from: jobTitle,
-          to: nextJob.nextJobTitle
+          to: nextJob.nextJobTitle,
+          value: nextJob.frequency // absolute numbers
         });
       });
     }.bind(this));
