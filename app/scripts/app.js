@@ -101,23 +101,29 @@ var TodoApp = React.createClass({
     Object.keys(this.state.jobs).forEach(function(jobTitle) {
       var job = this.state.jobs[jobTitle];
       if (!nodeAdded[jobTitle]) {
-        nodes.push({
+        var node = {
           id: jobTitle,
           label: jobTitle
-        });
-        nodeAdded[jobTitle] = true;
+        };
+        nodes.push(node);
+        nodeAdded[jobTitle] = node;
       }
 
       var job = this.state.jobs[jobTitle];
       job.results.forEach(function(nextJob) {
         var nextJobTitle = nextJob.nextJobTitle;
-        if (nodeAdded[nextJobTitle])
+        var node;
+        if (nodeAdded[nextJobTitle]) {
+          nodeAdded[nextJobTitle].value = nextJob.nationalJobCount;
           return;
-        nodes.push({
+        }
+        node = {
           id: nextJobTitle,
-          label: nextJobTitle
-        });
-        nodeAdded[nextJobTitle] = true;
+          label: nextJobTitle,
+          value: nextJob.nationalJobCount
+        };
+        nodes.push(node);
+        nodeAdded[nextJobTitle] = node;
       });
     }.bind(this));
 
@@ -139,7 +145,10 @@ var TodoApp = React.createClass({
     };
     var options = {
       width: '100%',
-      height: '100%'
+      height: '100%',
+      nodes: {
+        shape: 'dot'
+      }
     };
     var network = new vis.Network(container, data, options);
   },
