@@ -4,33 +4,33 @@ var React = window.React = require('react'),
     Timer = require("./ui/Timer"),
     request = require("superagent"),
     mountNode = document.getElementById("app");
+var Colors = {
+    Green: "#009688",
+    Red: "#F44336"
+}
 
 var TodoList = React.createClass({
   render: function() {
-    var createItem = function(itemText) {
-      return <li>{itemText}</li>;
-    };
-    return <ul>{this.props.items.map(createItem)}</ul>;
+      var createItem = function(itemText) {
+          return <li>{itemText}</li>;
+      };
+      return <ul>{this.props.items.map(createItem)}</ul>;
   }
 });
 
 function requestJobEvolution(jobTitle) {
-  return new Promise(function(resolve, reject) {
-    request
-      .get("http://localhost:8000/")
-      // .get("https://jsonp.nodejitsu.com/")
-      .query({
-        url: "http://api.glassdoor.com/api/api.htm?t.p=31642&t.k=0bNITwCyIE&userip=0.0.0.0&useragent=&format=json&v=1&action=jobs-prog&countryId=1&jobTitle=" + jobTitle
-      })
-      .end(function(err,res){
-          if (!err && res.ok) {
-            resolve(JSON.parse(res.text));
-          }
-          else {
-            reject("Request failed:" + err);
-          }
-      });
-  });
+    return new Promise(function(resolve, reject) {
+        request
+            .get("http://m.wafrat.com:8081/gd/api.htm?t.p=31642&t.k=0bNITwCyIE&userip=0.0.0.0&useragent=&format=json&v=1&action=jobs-prog&countryId=1&jobTitle=" + jobTitle)
+            .end(function(err,res){
+                if (!err && res.ok) {
+                    resolve(JSON.parse(res.text));
+                }
+                else {
+                    reject("Request failed:" + err);
+                }
+            });
+    });
 }
 
 var TodoApp = React.createClass({
@@ -132,6 +132,7 @@ var TodoApp = React.createClass({
     Object.keys(this.state.jobs).forEach(function(jobTitle) {
       var job = this.state.jobs[jobTitle];
       job.results.forEach(function(nextJob) {
+        var payRaise = job.payMedian < nextJob.medianSalary;
         // only render career progress
         // if (job.payMedian > nextJob.medianSalary)
         //   return;
@@ -139,7 +140,8 @@ var TodoApp = React.createClass({
         edges.push({
           from: jobTitle,
           to: nextJob.nextJobTitle,
-          value: nextJob.frequency // absolute numbers
+          value: nextJob.frequency, // absolute numbers
+          color: payRaise? Colors.Green: Colors.Red
         });
       });
     }.bind(this));
