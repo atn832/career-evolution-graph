@@ -24,7 +24,13 @@ function requestJobEvolution(jobTitle) {
             .get("http://m.wafrat.com:8081/gd/api.htm?t.p=31642&t.k=0bNITwCyIE&userip=0.0.0.0&useragent=&format=json&v=1&action=jobs-prog&countryId=1&jobTitle=" + jobTitle.toLowerCase())
             .end(function(err,res){
                 if (!err && res.ok) {
-                    resolve(JSON.parse(res.text));
+                    var obj = JSON.parse(res.text);
+                    if (obj.success) {
+                        resolve(obj);
+                    }
+                    else {
+                        reject("Request failed: " + obj.status);
+                    }
                 }
                 else {
                     reject("Request failed:" + err);
@@ -66,7 +72,9 @@ var TodoApp = React.createClass({
     this.setState({text: e.target.value});
   },
   handleSubmit: function(e) {
-    e.preventDefault();
+    if (e) {
+      e.preventDefault();
+    }
     var nextItems = this.state.items.concat([this.state.text]);
     requestJobEvolution(this.state.text).then(this.updateJobs.bind(this, 1), function(err) {
       alert("Request failed. Hourly quota reached?");
@@ -148,7 +156,7 @@ var TodoApp = React.createClass({
         edges.push({
           from: jobTitle,
           to: nextJob.nextJobTitle,
-          value: nextJob.frequency, // absolute numbers
+          value: nextJob.frequencyPercent, // absolute numbers
           color: payRaise? Colors.Green: Colors.Red
         });
       });
@@ -167,6 +175,15 @@ var TodoApp = React.createClass({
       }
     };
     var network = new vis.Network(container, data, options);
+
+    network.on("click", function(data) {
+      data.nodes.forEach(function(node) {
+        this.setState({
+          text: node
+        });
+        this.handleSubmit();
+      }.bind(this));
+    }.bind(this));
   },
   componentDidMount: function() {
     this.updateGraph();
