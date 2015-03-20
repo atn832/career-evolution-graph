@@ -44,6 +44,12 @@ function requestJobEvolution(jobTitle) {
     });
 }
 
+function getJobLabel(jobOrNextJob) {
+    var jobTitle = jobOrNextJob.jobTitle || jobOrNextJob.nextJobTitle;
+    var medianSalary = jobOrNextJob.payMedian || jobOrNextJob.medianSalary;
+    return (jobTitle + " ($" + Math.round(medianSalary / 1000) + "K)").replace(/ /g, "\n");
+}
+
 var TodoApp = React.createClass({
     updateJobs: function(depth, jobResult) {
         var jobs = this.state.jobs;
@@ -67,7 +73,7 @@ var TodoApp = React.createClass({
     getInitialState: function() {
         return {
             items: [],
-            text: '',
+            text: "",
             jobs: {}
         };
     },
@@ -78,12 +84,10 @@ var TodoApp = React.createClass({
         if (e) {
             e.preventDefault();
         }
-        var nextItems = this.state.items.concat([this.state.text]);
-        requestJobEvolution(this.state.text).then(this.updateJobs.bind(this, 1), function(err) {
-            alert("Request failed. Hourly quota reached?");
+        this.addJob(this.state.text);
+        this.setState({
+            text: ""
         });
-        var nextText = '';
-        this.setState({items: nextItems, text: nextText});
     },
     remove: function(job) {
         var items = this.state.items;
@@ -96,6 +100,15 @@ var TodoApp = React.createClass({
             jobs: jobs
         });
     },
+    addJob: function(job) {
+        var nextItems = this.state.items.concat([job]);
+        requestJobEvolution(job).then(this.updateJobs.bind(this, 1), function(err) {
+            alert("Request failed. Hourly quota reached?");
+        });
+        this.setState({
+            items: nextItems
+        });
+    },
     render: function() {
         return (
             <div className="row">
@@ -105,7 +118,7 @@ var TodoApp = React.createClass({
                         <input type="text" className="form-control" placeholder="Search for..."
                             onChange={this.onChange} value={this.state.text} />
                         <span className="input-group-btn">
-                            <button className="btn btn-default" type="button">Add!</button>
+                            <input type="submit" className="btn btn-default">Add!</input>
                         </span>
                     </form>
                 </div>
@@ -137,7 +150,7 @@ var TodoApp = React.createClass({
             if (!nodeAdded[jobTitle]) {
                 var node = {
                     id: jobTitle,
-                    label: jobTitle + " ($" + Math.round(job.payMedian / 1000) + "K)",
+                    label: getJobLabel(job),
                 };
                 nodes.push(node);
                 nodeAdded[jobTitle] = node;
@@ -153,7 +166,7 @@ var TodoApp = React.createClass({
                 }
                 node = {
                     id: nextJobTitle,
-                    label: nextJobTitle + " ($" + Math.round(nextJob.medianSalary / 1000) + "K)",
+                    label: getJobLabel(nextJob),
                     value: nextJob.nationalJobCount
                 };
                 nodes.push(node);
@@ -188,22 +201,19 @@ var TodoApp = React.createClass({
             width: '100%',
             height: '100%',
             nodes: {
-                shape: 'dot'
+                shape: 'box'
             }
         };
         var network = new vis.Network(container, data, options);
 
         network.on("click", function(data) {
-              data.nodes.forEach(function(node) {
-                this.setState({
-                    text: node
-                });
-                this.handleSubmit();
+            data.nodes.forEach(function(node) {
+                this.addJob(node);
             }.bind(this));
         }.bind(this));
     },
     componentDidMount: function() {
-        this.updateGraph();
+        this.addJob("accountant");
     },
     componentDidUpdate: function() {
         this.updateGraph();
