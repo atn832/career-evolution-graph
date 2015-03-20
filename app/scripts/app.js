@@ -21,7 +21,7 @@ var TodoList = React.createClass({
 function requestJobEvolution(jobTitle) {
     return new Promise(function(resolve, reject) {
         request
-            .get("http://m.wafrat.com:8081/gd/api.htm?t.p=31642&t.k=0bNITwCyIE&userip=0.0.0.0&useragent=&format=json&v=1&action=jobs-prog&countryId=1&jobTitle=" + jobTitle)
+            .get("http://m.wafrat.com:8081/gd/api.htm?t.p=31642&t.k=0bNITwCyIE&userip=0.0.0.0&useragent=&format=json&v=1&action=jobs-prog&countryId=1&jobTitle=" + jobTitle.toLowerCase())
             .end(function(err,res){
                 if (!err && res.ok) {
                     resolve(JSON.parse(res.text));
@@ -37,11 +37,12 @@ var TodoApp = React.createClass({
   updateJobs: function(depth, jobResult) {
     var jobs = this.state.jobs;
     jobs[jobResult.response.jobTitle] = jobResult.response;
+    this.graphInvalidated = true;
     this.setState({
       jobs: jobs
     });
     // request more
-    if (depth < 2) {
+    if (depth < 1) {
       Object.keys(jobs).forEach(function(jobTitle) {
         var job = jobs[jobTitle];
         job.results.forEach(function(nextJob) {
@@ -62,12 +63,14 @@ var TodoApp = React.createClass({
     };
   },
   onChange: function(e) {
-    this.set
-    State({text: e.target.value});
+    this.setState({text: e.target.value});
   },
   handleSubmit: function(e) {
     e.preventDefault();
     var nextItems = this.state.items.concat([this.state.text]);
+    requestJobEvolution(this.state.text).then(this.updateJobs.bind(this, 1), function(err) {
+      alert("Request failed. Hourly quota reached?");
+    });
     var nextText = '';
     this.setState({items: nextItems, text: nextText});
   },
@@ -81,11 +84,16 @@ var TodoApp = React.createClass({
           <button>{'Add #' + (this.state.items.length + 1)}</button>
         </form>
         <Timer />
-        <div ref="container" className="graph">container</div>
+        <div ref="container" className="graph jumbotron">container</div>
       </div>
     );
   },
   updateGraph: function() {
+    if (!this.graphInvalidated) {
+      return;
+    }
+    this.graphInvalidated = false;
+
     var container = this.refs.container.getDOMNode();
     if (!container)
       return;
@@ -104,7 +112,7 @@ var TodoApp = React.createClass({
       if (!nodeAdded[jobTitle]) {
         var node = {
           id: jobTitle,
-          label: jobTitle
+          label: jobTitle + " ($" + Math.round(job.payMedian / 1000) + "K)",
         };
         nodes.push(node);
         nodeAdded[jobTitle] = node;
