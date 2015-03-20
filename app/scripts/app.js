@@ -10,14 +10,16 @@ var Colors = {
 }
 
 var TodoList = React.createClass({
-  render: function() {
-      var createItem = function(itemText) {
-          return <li>
-            {itemText}
-            <button onClick={this.props.onRemove.bind(this, itemText)} type="button" className="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          </li>;
+    render: function() {
+        var createItem = function(itemText) {
+            return <li className="cl-r">
+                <a>
+                    {itemText}
+                    <button onClick={this.props.onRemove.bind(this, itemText)} type="button" className="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </a>
+            </li>;
       };
-      return <ul>{this.props.items.map(createItem.bind(this))}</ul>;
+      return <ul className="nav nav-pills nav-stacked">{this.props.items.map(createItem.bind(this))}</ul>;
   }
 });
 
@@ -96,15 +98,18 @@ var TodoApp = React.createClass({
     },
     render: function() {
         return (
-            <div>
-                <p>
-                    <TodoList items={this.state.items} onRemove={this.remove}/>
-                    <form onSubmit={this.handleSubmit}>
-                        <input onChange={this.onChange} value={this.state.text} />
-                        <button>{'Add #' + (this.state.items.length + 1)}</button>
+            <div className="row">
+                <div className="col-md-2">
+                    <p><TodoList items={this.state.items} onRemove={this.remove}/></p>
+                    <form className="input-group" onSubmit={this.handleSubmit}>
+                        <input type="text" className="form-control" placeholder="Search for..."
+                            onChange={this.onChange} value={this.state.text} />
+                        <span className="input-group-btn">
+                            <button className="btn btn-default" type="button">Add!</button>
+                        </span>
                     </form>
-                </p>
-                <div ref="container" className="graph jumbotron">container</div>
+                </div>
+                <div ref="container" className="graph col-md-10 jumbotron"></div>
             </div>
         );
     },
