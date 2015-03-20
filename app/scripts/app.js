@@ -12,9 +12,12 @@ var Colors = {
 var TodoList = React.createClass({
   render: function() {
       var createItem = function(itemText) {
-          return <li>{itemText}</li>;
+          return <li>
+            {itemText}
+            <button onClick={this.props.onRemove.bind(this, itemText)} type="button" className="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </li>;
       };
-      return <ul>{this.props.items.map(createItem)}</ul>;
+      return <ul>{this.props.items.map(createItem.bind(this))}</ul>;
   }
 });
 
@@ -60,8 +63,6 @@ var TodoApp = React.createClass({
     }
   },
   getInitialState: function() {
-    requestJobEvolution("software developer").then(this.updateJobs.bind(this, 1));
-
     return {
       items: [],
       text: '',
@@ -82,16 +83,27 @@ var TodoApp = React.createClass({
     var nextText = '';
     this.setState({items: nextItems, text: nextText});
   },
+  remove: function(job) {
+    var items = this.state.items;
+    items.splice(items.indexOf(job), 1);
+    this.graphInvalidated = true;
+    var jobs = this.state.jobs;
+    delete jobs[job];
+    this.setState({
+      items: items,
+      jobs: jobs
+    });
+  },
   render: function() {
     return (
       <div>
-        <h3>TODO</h3>
-        <TodoList items={this.state.items} />
-        <form onSubmit={this.handleSubmit}>
-          <input onChange={this.onChange} value={this.state.text} />
-          <button>{'Add #' + (this.state.items.length + 1)}</button>
-        </form>
-        <Timer />
+        <p>
+          <TodoList items={this.state.items} onRemove={this.remove}/>
+          <form onSubmit={this.handleSubmit}>
+            <input onChange={this.onChange} value={this.state.text} />
+            <button>{'Add #' + (this.state.items.length + 1)}</button>
+          </form>
+        </p>
         <div ref="container" className="graph jumbotron">container</div>
       </div>
     );
