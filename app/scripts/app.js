@@ -4,6 +4,7 @@ var React = window.React = require('react'),
     Timer = require("./ui/Timer"),
     request = require("superagent"),
     mountNode = document.getElementById("app");
+
 var Colors = {
     Green: "#009688",
     Red: "#F44336"
@@ -101,6 +102,10 @@ var TodoApp = React.createClass({
         });
     },
     addJob: function(job) {
+        job = job.toLowerCase();
+        if (this.state.jobs[job]) {
+            return;
+        }
         var nextItems = this.state.items.concat([job]);
         requestJobEvolution(job).then(this.updateJobs.bind(this, 1), function(err) {
             alert("Request failed. Hourly quota reached?");
